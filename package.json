@@ -16,17 +16,7 @@
   },
   "author": "jfo84",
   "license": "UNLICENSED",
-  "dependencies": {
-    "connect": "^3.7.0",
-    "connect-gzip-static": "^2.1.1",
-    "preact": "^8.5.3",
-    "preact-context": "^1.1.4",
-    "preact-redux": "^2.1.0",
-    "random-words": "^1.1.0",
-    "redux": "^4.0.4",
-    "redux-logger": "^3.0.6",
-    "redux-thunk": "^2.3.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.7.0",
     "@babel/core": "^7.7.2",
@@ -38,6 +28,8 @@
     "@types/redux-logger": "^3.0.7",
     "babel-loader": "^8.0.6",
     "compression-webpack-plugin": "^3.0.1",
+    "connect": "^3.7.0",
+    "connect-gzip-static": "^2.1.1",
     "copy-webpack-plugin": "^5.1.0",
     "css-loader": "^3.2.1",
     "style-loader": "^1.0.1",

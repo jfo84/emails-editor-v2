@@ -1,25 +1,19 @@
-import { h, Component } from 'preact';
-import { connect } from 'preact-redux';
-// @ts-ignore
-import randomWords from 'random-words';
-
-import { ReduxState, Dispatch } from '../redux/reducers/types';
-import * as constants from '../redux/constants';
+import { Store } from '../types';
+import { dom, randomWord } from '../utils';
 
 import './EmailsButtons.css';
 
-type Props = {
-  emailCount: number;
-  addEmail: (email: string) => void;
-};
+type Props = { store: Store; };
 
-const EmailsButtons = ({ emailCount, addEmail }: Props) => {
+const EmailsButtons = ({ store }: Props) => {
+  const emailCount = store.getEmailList().length;
+
   const handleAddClick = (event: MouseEvent): void => {
     if (event.target instanceof HTMLButtonElement) {
-      const user: string = randomWords();
-      const domain: string = randomWords();
+      const user = randomWord();
+      const domain = randomWord();
 
-      addEmail(`${user}@${domain}.com`);
+      store._addEmail(`${user}@${domain}.com`);
     }
   };
 
@@ -47,22 +41,4 @@ const EmailsButtons = ({ emailCount, addEmail }: Props) => {
   );
 }
 
-const mapStateToProps = (state: ReduxState) => ({
-  emailCount: state.email.list.length
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  addEmail: (e: string) => {
-    if (e) dispatch({
-      type: constants.EMAIL_ADD,
-      payload: { email: e },
-    });
-  },
-});
-
-const ConnectedButtons = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(EmailsButtons);
-
-export default ConnectedButtons;
+export default EmailsButtons;

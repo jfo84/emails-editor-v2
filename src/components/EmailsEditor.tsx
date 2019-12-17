@@ -1,124 +1,82 @@
-import { h, Component } from 'preact';
-import { connect } from 'preact-redux';
-
-import { validateEmail } from '../utils';
-import { ReduxState, Dispatch } from '../redux/reducers/types';
-import * as constants from '../redux/constants';
+import { dom, validateEmail } from '../utils';
+import { Store } from '../types';
 
 import './EmailsEditor.css';
 
-type Props = {
-  list: string[];
-  addEmail: (email: string) => void;
-  removeEmail: (index: number) => void;
-};
+type Props = { store: Store; };
 
-type State = { ephemeralEmail: string };
+const EmailsEditor = ({ store }: Props) => {
+  const list = store.getEmailList();
+  const { currentEmail } = store._state;
 
-class EmailsEditor extends Component<Props, State> {
-  state = {
-    ephemeralEmail: '',
-  };
-
-  handleChange = (event: Event): void => {
+  const handleInput = (event: InputEvent): void => {
     if (event.target instanceof HTMLInputElement) {
-      this.setState({ ephemeralEmail: event.target.value });
-    }
-  };
-
-  handleKeyUp = (event: KeyboardEvent): void => {
-    if (event.target instanceof HTMLInputElement) {
-      const { code, target: { value } } = event;
-
-      if (code === 'Comma' || code === 'Enter') {
-        // The change event has likely not fired yet, so we use the target value and
-        // remove the 'Comma' from the value
-        const strippedEmail = (code === 'Comma')
-          ? value.substring(0, value.length - 1)
-          : value;
-        this.props.addEmail(strippedEmail);
-  
-        this.setState({ ephemeralEmail: '' });
+      if (event.data !== ',') {
+        store._setCurrentEmail(event.target.value);
       }
     }
   };
 
-  handlePaste = (event: ClipboardEvent): void => {
-    event.preventDefault();
-
+  const handleKeyUp = (event: KeyboardEvent): void => {
     if (event.target instanceof HTMLInputElement) {
+      const { code, target } = event;
+
+      if (code === 'Comma' || code === 'Enter') {
+        store._addCurrentEmail();
+      }
+    }
+  };
+
+  const handlePaste = (event: ClipboardEvent): void => {
+    if (event.target instanceof HTMLInputElement) {
+      event.preventDefault();
+
       const emailListString = event.clipboardData!.getData('text/plain');
       const pastedEmails = emailListString.split(',').map(e => e.trim());
   
-      pastedEmails.forEach(e => this.props.addEmail(e));
+      pastedEmails.forEach(e => store._addEmail(e));
     }
   };
 
-  handleBlur = (event: FocusEvent): void => {
+  const handleBlur = (event: FocusEvent): void => {
     if (event.target instanceof HTMLInputElement) {
-      this.props.addEmail(event.target.value);
+      if (event.target.value === '') return;
 
-      this.setState({ ephemeralEmail: '' });
+      store._addCurrentEmail();
     }
   };
 
-  render() {
-    const { list = [], removeEmail } = this.props;
-    const { ephemeralEmail } = this.state;
-  
-    return (
-      <div class='emails-editor-container'>
-        {list.map((email, index) => {
-          const textClass = validateEmail(email)
-            ? 'email-text'
-            : 'email-text invalid';
+  return (
+    <div class='emails-editor-container'>
+      {list.map((email, index) => {
+        const textClass = validateEmail(email)
+          ? 'email-text'
+          : 'email-text invalid';
 
-          return (
-            <div class='email-container'>
-              <div class={textClass}>{email}</div>
-              <div
-                class='email-remove'
-                onClick={() => removeEmail(index)}
-              ></div>
-            </div>
-          );
-        })}
-        <input
-          type='email'
-          class='email-input'
-          spellcheck={true}
-          placeholder='add more people...'
-          value={ephemeralEmail}
-          onChange={this.handleChange}
-          onKeyUp={this.handleKeyUp}
-          onPaste={this.handlePaste}
-          onBlur={this.handleBlur}
-        />
-      </div>
-    );
-  }
-}
+        return (
+          <div class='email-container'>
+            <div class={textClass}>{email}</div>
+            <div
+              class='email-remove'
+              onClick={() => store._removeEmail(index)}
+            ></div>
+          </div>
+        );
+      })}
+      <input
+        type='email'
+        class='email-input'
+        spellcheck={true}
+        autofocus={true}
+        placeholder='add more people...'
+        value={currentEmail}
+        onInput={handleInput}
+        onKeyUp={handleKeyUp}
+        onPaste={handlePaste}
+        onBlur={handleBlur}
+      />
+    </div>
+  );
+};
 
-const mapStateToProps = (state: ReduxState) => ({
-  list: state.email.list
-});
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  addEmail: (e: string) => {
-    if (e) dispatch({
-      type: constants.EMAIL_ADD,
-      payload: { email: e },
-    });
-  },
-  removeEmail: (i: number) => dispatch({
-    type: constants.EMAIL_REMOVE,
-    payload: { index: i },
-  }),
-});
-
-const ConnectedEditor = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(EmailsEditor);
-
-export default ConnectedEditor;
+export default EmailsEditor;
